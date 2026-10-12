@@ -102,7 +102,7 @@ advice:"Unexpected changes to bank or payment instructions can be fraudulent. Co
 {
 name:"Possible account-recovery impersonation",
 level:"high",
-test:t=>/(support team|recovery agent|account recovery|account (has been |was )?(hacked|compromised)|permanently disabled|security team)/i.test(t)&&/(send|share|provide|reply with|verify|give).{0,45}(code|password|passcode|verification code)|remote access/i.test(t),&&/(send|share|provide|verify).{0,35}(code|password|passcode)|remote access/i.test(t),
+test:t=>/(support team|recovery agent|account recovery|account (has been |was )?(hacked|compromised)|permanently disabled|security team)/i.test(t)&&(/(send|share|provide|reply with|verify|give).{0,45}(code|password|passcode|verification code)/i.test(t)||/remote access/i.test(t)),/(send|share|provide|verify).{0,35}(code|password|passcode)|remote access/i.test(t),
 advice:"Never share sign-in codes or passwords with someone who contacts you unexpectedly. Contact the service through its official app or website."
 },
 {
