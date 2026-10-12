@@ -88,7 +88,9 @@ advice:"Unexpected package-fee texts can lead to fake payment pages. Check track
 {
 name:"Possible job or employment scam",
 level:"high",
-test:t=>/(job offer|remote position|work from home|hiring process|employment opportunity)/i.test(t)&&/(upfront fee|pay for training|deposit this check|buy equipment|gift card|send.*crypto|return.*check)/i.test(t),
+
+test:t=>/(job offer|remote[- ]position|work[- ]from[- ]home|hiring process|employment opportunity|selected for a job|selected for our remote job|work[- ]at[- ]home)/i.test(t)&&/(upfront fee|pay for training|training fee|deposit this check|buy equipment|purchase equipment|gift card|send.*crypto|return.*check|pay.*before starting|pay.*before you start)/i.test(t),
+
 advice:"Be cautious if someone asks you to pay to get a job, return money from a check, or buy equipment through a specific payment method. Verify the employer independently."
 },
 {
