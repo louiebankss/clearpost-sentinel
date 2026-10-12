@@ -1,0 +1,200 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071322">
+<title>ClearPost Sentinel — Scam Check</title>
+<style>
+:root{color-scheme:dark;--bg:#071322;--panel:#102239;--line:#2b4560;--text:#f3f7fc;--muted:#a9bbcf;--cyan:#55e3d0;--amber:#ffc56d;--red:#ff777e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,sans-serif}
+main{max-width:760px;margin:auto;padding:24px 16px 50px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.logo{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--cyan);color:#071322;font-size:25px;font-weight:900}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.12;margin:12px 0}
+h2{font-size:20px;margin:0 0 10px}
+p{margin:8px 0}
+.muted{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0}
+label{display:block;font-weight:700;margin:12px 0 8px}
+textarea{width:100%;min-height:150px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:12px;background:#071827;color:var(--text);font:inherit}
+button{border:0;border-radius:10px;padding:12px 16px;font:inherit;font-weight:750;cursor:pointer}
+.primary{background:var(--cyan);color:#061725}
+.secondary{background:#203952;color:var(--text);border:1px solid var(--line)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.finding{border-left:4px solid var(--amber);padding:12px;margin:12px 0;background:#172b40;border-radius:6px}
+.finding.high{border-color:var(--red)}
+.finding h3{font-size:17px;margin:0 0 5px}
+.tag{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--amber);font-weight:800}
+.high .tag{color:var(--red)}
+.notice{padding:12px;background:#102c36;border-radius:8px;margin-top:12px}
+footer{font-size:13px;color:var(--muted);margin-top:26px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="logo" aria-hidden="true">◈</div>
+<div><strong>ClearPost Sentinel</strong><div class="muted">Sentinel Check · Beta</div></div>
+</header>
+
+<p class="muted">A first-pass check for suspicious messages. Understand the warning signs before you act.</p>
+
+<section class="card">
+<h2>Check a message or link</h2>
+<p class="muted">Paste the suspicious text below. Do not include passwords, verification codes, or private account information.</p>
+<label for="message">Message or URL</label>
+<textarea id="message" maxlength="12000" placeholder="Paste a suspicious delivery text, job offer, payment request, or other message..."></textarea>
+<div class="actions">
+<button class="primary" id="scan">Check message</button>
+<button class="secondary" id="example">Load test example</button>
+<button class="secondary" id="clear">Clear</button>
+</div>
+</section>
+
+<section class="card" id="results" aria-live="polite" hidden>
+<h2>Results</h2>
+<p id="summary"></p>
+<div id="findings"></div>
+<div class="notice">
+<strong>Safer next step</strong>
+<p>Don't use contact details or payment links in a suspicious message. Open the official app or type a known website yourself. Verify unexpected requests through a previously trusted contact method.</p>
+</div>
+</section>
+
+<section class="card">
+<h2>What this scanner checks</h2>
+<p>Package-fee requests, suspicious job offers, payment-detail changes, account-recovery impersonation, pressure tactics, sensitive-information requests, prize claims, shortened links, HTTP links, and numeric-IP links.</p>
+<p class="muted">These are clues, not proof. Legitimate messages can trigger warnings, and scams can evade detection.</p>
+</section>
+
+<footer>
+Privacy: this demo analyzes the text in your browser and does not intentionally transmit it to a server. It does not open or verify links, inspect other apps, or replace professional security tools.
+</footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+
+const rules = [
+{
+name:"Possible fake-delivery fee",
+level:"warning",
+test:t=>/package.{0,25}(held|delayed)|delivery.{0,25}(failed|attempt)|customs fee|redelivery fee|delivery fee|shipping fee/i.test(t),
+advice:"Unexpected package-fee texts can lead to fake payment pages. Check tracking directly in the carrier's official app or website."
+},
+{
+name:"Possible job or employment scam",
+level:"high",
+test:t=>/(job offer|remote position|work from home|hiring process|employment opportunity)/i.test(t)&&/(upfront fee|pay for training|deposit this check|buy equipment|gift card|send.*crypto|return.*check)/i.test(t),
+advice:"Be cautious if someone asks you to pay to get a job, return money from a check, or buy equipment through a specific payment method. Verify the employer independently."
+},
+{
+name:"Payment-detail change request",
+level:"warning",
+test:t=>/(change|updated|new|different).{0,45}(bank|payment|wire|payroll).{0,35}(detail|instruction|account|number)|(?:bank|payment|wire|payroll).{0,35}(detail|instruction).{0,35}(change|updated|new|different)/i.test(t),
+advice:"Unexpected changes to bank or payment instructions can be fraudulent. Confirm with the recipient using a phone number you already trust."
+},
+{
+name:"Possible account-recovery impersonation",
+level:"high",
+test:t=>/(support team|recovery agent|account recovery|account (has been |was )?(hacked|compromised))/i.test(t)&&/(send|share|provide|verify).{0,35}(code|password|passcode)|remote access/i.test(t),
+advice:"Never share sign-in codes or passwords with someone who contacts you unexpectedly. Contact the service through its official app or website."
+},
+{
+name:"High-pressure or threat language",
+level:"warning",
+test:t=>/urgent|immediately|act now|final warning|account will be (locked|suspended)|within \d+ minutes|last chance/i.test(t),
+advice:"Scammers often create urgency to stop you checking the request. Pause and verify through a separate trusted channel."
+},
+{
+name:"Sensitive information mentioned",
+level:"high",
+test:t=>/send.{0,30}(password|passcode|one[- ]time code|verification code|social security number|ssn)|verify.{0,25}(password|one[- ]time code|verification code)|bank details|credit card number/i.test(t),
+advice:"Do not send passwords, one-time codes, or financial details in response to an unexpected message."
+},
+{
+name:"Prize or unusual money claim",
+level:"warning",
+test:t=>/you (have )?won|claim your prize|crypto giveaway|guaranteed profit|lottery winner|claim your reward/i.test(t),
+advice:"Unexpected prizes and guaranteed returns are common scam lures. Never pay a fee or share sensitive details to claim an unsolicited prize."
+},
+{
+name:"Shortened link",
+level:"warning",
+test:t=>/(https?:\/\/)?(bit\.ly|tinyurl\.com|t\.co|is\.gd|cutt\.ly)\//i.test(t),
+advice:"A shortened URL hides its final destination. Don't open unexpected links; find the organization's official site independently."
+},
+{
+name:"Unencrypted HTTP link",
+level:"warning",
+test:t=>/http:\/\/[^\s<>()]+/i.test(t),
+advice:"HTTP does not encrypt the connection like HTTPS. This alone does not prove a scam, and HTTPS alone does not prove a site is trustworthy."
+},
+{
+name:"Link uses a numeric IP address",
+level:"high",
+test:t=>/https?:\/\/(?:\d{1,3}\.){3}\d{1,3}(?=[:\/?#\s]|$)/i.test(t),
+advice:"Unexpected login links using a numeric IP address deserve extra caution. Don't enter credentials; verify the destination independently."
+},
+{
+name:"Payment pressure",
+level:"warning",
+test:t=>/(gift card|wire transfer|payment|invoice|refund|crypto).{0,60}(click|pay now|send money|confirm|transfer)|(?:click|pay now|send money|confirm|transfer).{0,60}(gift card|wire transfer|payment|invoice|refund|crypto)/i.test(t),
+advice:"Verify unexpected payment requests through a known official phone number or app, not through the message link."
+}
+];
+
+$("scan").addEventListener("click",()=>{
+ const text=$("message").value.trim();
+ if(!text){$("message").focus();return}
+ const hits=rules.filter(rule=>rule.test(text));
+ $("results").hidden=false;
+ $("findings").replaceChildren();
+
+ if(!hits.length){
+  $("summary").textContent="No obvious warning signs matched these rules. This does NOT mean the message is safe.";
+  const p=document.createElement("p");
+  p.className="finding";
+  p.textContent="Check the sender independently, be wary of unexpected links, and never share sign-in codes.";
+  $("findings").appendChild(p);
+  return;
+ }
+
+ const high=hits.filter(h=>h.level==="high").length;
+ $("summary").textContent=high
+  ?"Found "+hits.length+" potential warning sign(s), including "+high+" higher-concern signal(s). Review each finding; this is not proof of fraud."
+  :"Found "+hits.length+" potential warning sign(s). Review each finding; this is not proof of fraud.";
+
+ hits.forEach(hit=>{
+  const box=document.createElement("article");
+  box.className="finding"+(hit.level==="high"?" high":"");
+  const tag=document.createElement("div");
+  tag.className="tag";
+  tag.textContent=hit.level==="high"?"Higher-concern signal":"Caution";
+  const title=document.createElement("h3");
+  title.textContent=hit.name;
+  const advice=document.createElement("p");
+  advice.textContent=hit.advice;
+  box.append(tag,title,advice);
+  $("findings").appendChild(box);
+ });
+});
+
+$("example").addEventListener("click",()=>{
+ $("message").value="Your package delivery failed. Pay a redelivery fee immediately using this link: http://192.0.2.4/delivery";
+ $("message").focus();
+});
+
+$("clear").addEventListener("click",()=>{
+ $("message").value="";
+ $("results").hidden=true;
+ $("summary").textContent="";
+ $("findings").replaceChildren();
+ $("message").focus();
+});
+</script>
+</body>
+</html>
